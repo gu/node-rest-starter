@@ -16,6 +16,7 @@ const _ = require('lodash'),
 	passport = require('passport'),
 	swaggerJsDoc = require('swagger-jsdoc'),
 	swaggerUi = require('swagger-ui-express'),
+	cors = require('cors'),
 	MongoStore = require('connect-mongo')(session);
 
 const baseApiPath = '/api';
@@ -88,6 +89,26 @@ function initMiddleware(app) {
 	// Add the cookie parser and flash middleware
 	app.use(cookieParser(config.auth.sessionSecret));
 	app.use(flash());
+}
+
+function initCors(app) {
+	const corsOptionsDelegate = (req, callback) => {
+		let corsOptions;
+		if (
+			config.cors.origin.indexOf(req.header('Origin')) !== -1 &&
+			(config.cors.routes.indexOf(req.path) !== -1 ||
+				config.cors.routes === '*')
+		) {
+			corsOptions = config.cors.options;
+			corsOptions.origin = true;
+		} else {
+			corsOptions = { origin: false };
+		}
+
+		callback(null, corsOptions);
+	};
+
+	app.use(cors(corsOptionsDelegate));
 }
 
 /**
@@ -256,6 +277,8 @@ function initSwaggerAPI(app) {
 /**
  * Initialize the Express application
  *
+ *
+ *
  * @returns {express.Express}
  */
 module.exports.init = function (db) {
@@ -272,6 +295,9 @@ module.exports.init = function (db) {
 
 	// Initialize Express middleware
 	initMiddleware(app);
+
+	// Initialize CORS
+	if (config.cors.enabled) initCors(app);
 
 	// Initialize Express view engine
 	initViewEngine(app);

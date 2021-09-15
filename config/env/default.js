@@ -364,6 +364,12 @@ module.exports = {
 		nestedTeams: false
 	},
 
+	cors: {
+		enabled: false,
+		origin: ['localhost:4200'],
+		routes: '*'
+	},
+
 	/**
 	 * Not So Environment-Specific Settings
 	 */
